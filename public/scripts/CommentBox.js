@@ -46,15 +46,28 @@ var CommentBox = React.createClass({
     });
   },
 
-  handleCommentRemove: function(comment) {
-  	
-  }
+  handleCommentRemove: function(commentId) {
+    var comments = this.state.data;
+
+  	$.ajax({
+      url: this.props.url + '/' + commentId,
+      dataType: 'json',
+      type: 'DELETE',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({data: comments});
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
 
   render: function() {
     return (
       <div className="commentBox">
         <h1>CommentBox</h1>
-        <CommentList data={this.state.data}/>
+        <CommentList data={this.state.data} onCommentRemove={this.handleCommentRemove}/>
         <CommentForm onCommentSubmit={this.handleCommentSubmit} />
       </div>
     );
@@ -69,11 +82,11 @@ var CommentList = React.createClass({
   render: function() {
 		var commentNodes = this.props.data.map(function(comment) {
 			return (
-				<Comment author={comment.author} key={comment.id}>
+				<Comment author={comment.author} key={comment.id} id={comment.id} onCommentRemove={this.props.onCommentRemove}>
 					{comment.text}
 				</Comment>
 			);
-		});
+		}, this);
 
     return (
       <div className="commentList">
@@ -130,16 +143,22 @@ var CommentForm = React.createClass({
 
 
 var Comment = React.createClass({
+  onCommentRemove: function(e) {
+    e.preventDefault();
+
+    this.props.onCommentRemove(this.props.id);
+  },
+
 	render: function() {
 		return (
 			<div className='comment'>
 				<h2 className='commentAuthor'>{this.props.author}</h2>
 				{this.props.children}
-				<a href="#" className='removeComment' onClick="{this.handleCommentRemove}">Remove</a>
+				<a href="#" className='removeComment' onClick={this.onCommentRemove}>Remove</a>
 			</div>
 		);
 	}
-})
+});
 
 
 

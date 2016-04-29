@@ -41,6 +41,7 @@ app.get('/api/comments', function(req, res) {
       console.error(err);
       process.exit(1);
     }
+
     res.json(JSON.parse(data));
   });
 });
@@ -51,6 +52,7 @@ app.post('/api/comments', function(req, res) {
       console.error(err);
       process.exit(1);
     }
+
     var comments = JSON.parse(data);
     // NOTE: In a real implementation, we would likely rely on a database or
     // some other approach (e.g. UUIDs) to ensure a globally unique id. We'll
@@ -58,47 +60,47 @@ app.post('/api/comments', function(req, res) {
     var newComment = {
       id: Date.now(),
       author: req.body.author,
-      text: req.body.text,
+      text: req.body.text
     };
+
     comments.push(newComment);
+
     fs.writeFile(COMMENTS_FILE, JSON.stringify(comments, null, 4), function(err) {
       if (err) {
         console.error(err);
         process.exit(1);
       }
+
       res.json(comments);
     });
   });
 });
 
 app.delete('/api/comments/:commentId', function(req, res) {
-  var commentId = req.params.commentId;
+  var commentId = parseInt(req.params.commentId);
 
-  fs.readFile(COMMENTS_FILE, function(err, data) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-
-    var comments = JSON.parse(data);
-    // NOTE: In a real implementation, we would likely rely on a database or
-    // some other approach (e.g. UUIDs) to ensure a globally unique id. We'll
-    // treat Date.now() as unique-enough for our purposes.
-    var newComment = {
-      id: Date.now(),
-      author: req.body.author,
-      text: req.body.text,
-    };
-
-    comments.push(newComment);
-    fs.writeFile(COMMENTS_FILE, JSON.stringify(comments, null, 4), function(err) {
+  if(commentId) {
+    // delete comment given by :commentId
+    fs.readFile(COMMENTS_FILE, function(err, data) {
       if (err) {
         console.error(err);
         process.exit(1);
       }
-      res.json(comments);
+
+      var comments = JSON.parse(data).filter(function(comment) {
+        return comment.id !== commentId;
+      });
+
+
+      fs.writeFile(COMMENTS_FILE, JSON.stringify(comments, null, 4), function(err) {
+        if (err) {
+          console.error(err);
+          process.exit(1);
+        }
+        res.json(comments);
+      });
     });
-  });
+  }
 });
 
 
