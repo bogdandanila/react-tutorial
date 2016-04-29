@@ -161,12 +161,44 @@ var Comment = React.createClass({
 });
 
 
+var Page = React.createClass({
+  getInitialState: function () {
+    return {user: ''}
+  },
 
+  handleUsernameChange: function(e) {
+    this.setState({user: e.target.value});
+  },
 
+  onFormSubmit: function (e) {
+    e.preventDefault();
 
+    var user = this.state.user.trim();
+
+    if (!user) {
+      return;
+    }
+
+    window.localStorage.user = user;
+    this.setState(this.getInitialState());
+  },
+
+  render: function() {
+    return (
+      <div className="usernameBox">
+        <form onSubmit={this.onFormSubmit}>
+          <input type="text" onChange={this.handleUsernameChange} placeholder="Set your username here..." value={this.state.user}/>
+          <input type="submit" value="Set username"/>
+        </form>
+
+        <CommentBox url="/api/comments" pollInterval={2000}/>
+      </div>
+    );
+  }
+});
 
 ReactDOM.render(
-  <CommentBox url="/api/comments" pollInterval={2000}/>,
+  <Page url="/api/comments" pollInterval={2000}/>,
   document.getElementById('content')
 );
 
